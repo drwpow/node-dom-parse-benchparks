@@ -14,6 +14,7 @@
 | :------------------------------------------------------------- | -------: | :----------: |
 | [hypertag](https://npmjs.com/hypertag)                         |  `1.48s` |      —       |
 | [fast-html-parser](https://npmjs.com/fast-html-parser)         |  `1.63s` |  10% slower  |
+| [htmlparser2](https://npmjs.com/htmlparser2)                   |  `3.69s` | 149% slower  |
 | [node-html-parser](https://npmjs.com/node-html-parser)         |  `5.24s` | 254% slower  |
 | [sax-wasm](https://npmjs.com/sax-wasm)\*                       | `10.82s` | 631% slower  |
 | [cheerio](https://npmjs.com/cheerio)                           | `22.48s` | 1419% slower |

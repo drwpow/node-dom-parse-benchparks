@@ -8,6 +8,7 @@ import fastHtmlParser from "fast-html-parser";
 import { default as fastHtmlDomParser } from "fast-html-dom-parser";
 import nodeHtmlParser from "node-html-parser";
 import { JSDOM } from "jsdom";
+import htmlparser2 from "htmlparser2";
 import { SaxEventType, SAXParser } from "sax-wasm";
 
 const require = createRequire(import.meta.url);
@@ -23,6 +24,24 @@ async function main() {
 
   // start
   console.log(new Array(40).join("-"));
+
+  // htmlparser2
+  await test("htmlparser2", async () => {
+    const parser = new htmlparser2.Parser({
+      onopentag(name, attrs) {
+        if (name === "svg") {
+          // found it!
+        }
+      },
+      onclosetag(name, attrs) {
+        if (name === "svg") {
+          // found it!
+        }
+      },
+    });
+    parser.write(html);
+    parser.end();
+  });
 
   // hypertag
   await test("hypertag", async () => {
