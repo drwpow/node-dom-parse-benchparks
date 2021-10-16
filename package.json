@@ -7,11 +7,12 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
+    "fast-html-dom-parser": "^1.0.3",
     "fast-html-parser": "^1.0.1",
     "hypertag": "^0.0.3",
+    "jsdom": "^18.0.0",
     "node-fetch": "^3.0.0",
     "node-html-parser": "^5.0.0",
-    "parse5": "^6.0.1",
     "sax-wasm": "^2.1.0"
   }
 }

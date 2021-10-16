@@ -5,60 +5,45 @@ import cheerio from "cheerio";
 import { default as hypertag } from "hypertag";
 import { createRequire } from "module";
 import fastHtmlParser from "fast-html-parser";
+import { default as fastHtmlDomParser } from "fast-html-dom-parser";
 import nodeHtmlParser from "node-html-parser";
-import parse5 from "parse5";
+import { JSDOM } from "jsdom";
 import { SaxEventType, SAXParser } from "sax-wasm";
 
 const require = createRequire(import.meta.url);
 
 const ITERATIONS = 1000;
 
-async function test() {
+async function main() {
   // fetch GitHub.com homepage (© GitHub, all rights reserved)
   const html = await fetch("https://github.com/home").then((res) => res.text());
   const htmlBuf = Buffer.from(html);
-  const timers = {};
+
+  // note: Tests must run one after the other! Benchmarks are no good running in parallel
+
+  // start
+  console.log(new Array(40).join("-"));
 
   // hypertag
-  timers.hypertag = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
+  await test("hypertag", async () => {
     hypertag(html, "svg");
-  }
-  timers.hypertag.end = performance.now();
-
-  console.log(new Array(40).join("-"));
-  print("hypertag", timers.hypertag.start, timers.hypertag.end);
+  });
 
   // fast-html-parser
-  timers["fast-html-parser"] = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
+  await test("fast-html-parser", async () => {
     const fastHtmlDoc = fastHtmlParser.parse(html);
     fastHtmlDoc.querySelector("svg");
-  }
-  timers["fast-html-parser"].end = performance.now();
-  print(
-    "fast-html-parser",
-    timers["fast-html-parser"].start,
-    timers["fast-html-parser"].end
-  );
+  });
 
   // node-html-parser
-  timers["node-html-parser"] = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
+  await test("node-html-parser", async () => {
     const nodeHtmlDoc = nodeHtmlParser.parse(html);
     nodeHtmlDoc.querySelector("svg");
-  }
-  timers["node-html-parser"].end = performance.now();
-  print(
-    "node-html-parser",
-    timers["node-html-parser"].start,
-    timers["node-html-parser"].end
-  );
+  });
 
   // sax-wasm
-  timers["sax-wasm"] = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
-    // 🤷‍♂️🤷‍♂️🤷‍♂️🤷‍♂️🤷‍♂️
+  await test("sax-wasm", async () => {
+    // WASM shenanigans…
     const options = { highWaterMark: 32 * 1024 };
     const parser = new SAXParser(
       SaxEventType.Attribute | SaxEventType.OpenTag,
@@ -74,34 +59,41 @@ async function test() {
     );
     parser.write(htmlBuf);
     parser.end();
-  }
-  timers["sax-wasm"].end = performance.now();
-  print("sax-wasm", timers["sax-wasm"].start, timers["sax-wasm"].end);
+  });
 
   // cheerio
-  timers.cheerio = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
-    const cheerioDoc = cheerio.load(html);
-    cheerioDoc("svg");
-  }
-  timers.cheerio.end = performance.now();
-  print("parse5", timers.cheerio.start, timers.cheerio.end);
+  await test("cheerio", async () => {
+    const $ = cheerio.load(html);
+    $("svg");
+  });
 
-  // parse5
-  timers.parse5 = { start: performance.now() };
-  for (let n = 0; n < ITERATIONS; n++) {
-    const parse5doc = parse5.parse(html);
-    JSON.stringify(parse5doc.childNodes, (k, v) => {
-      delete v.parentNode;
-      const isSvg = k === "tagName" && v === "svg";
-      return v;
-    });
-  }
-  timers.parse5.end = performance.now();
-  print("parse5", timers.parse5.start, timers.parse5.end);
+  // jsdom (commented out because it runs out of memory)
+  // await test("jsdom", async () => {
+  //   const { document } = new JSDOM(html).window;
+  //   document.querySelector("svg");
+  // });
+
+  // fast-html-dom-parser (commented out because it’s too slow :/)
+  // await test("fast-html-dom-parser", async () => {
+  //   const document = new fastHtmlDomParser.DOMparser(html);
+  //   document.getElementsByTagName("svg");
+  // });
+
+  // end
   console.log(new Array(40).join("-"));
 }
-test();
+main();
+
+async function test(name, cb) {
+  const start = performance.now();
+  for (let n = 0; n < ITERATIONS; n++) {
+    await cb();
+  }
+  const end = performance.now();
+  const timeMs = end - start;
+  console.log(`| ${padRight(name)} | ${padLeft(timeMs.toFixed(2), 10)}ms |`);
+  return timeMs;
+}
 
 function padRight(input, min = 20) {
   let output = input;
@@ -117,10 +109,4 @@ function padLeft(input, min = 20) {
     output = " " + output;
   }
   return output;
-}
-
-function print(row, start, end) {
-  console.log(
-    `| ${padRight(row)} | ${padLeft((end - start).toFixed(2), 10)}ms |`
-  );
 }
