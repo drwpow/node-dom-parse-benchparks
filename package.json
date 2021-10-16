@@ -1,0 +1,17 @@
+{
+  "name": "node-dom-benchmarks",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node ./test.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "fast-html-parser": "^1.0.1",
+    "hypertag": "^0.0.3",
+    "node-fetch": "^3.0.0",
+    "node-html-parser": "^5.0.0",
+    "parse5": "^6.0.1",
+    "sax-wasm": "^2.1.0"
+  }
+}
